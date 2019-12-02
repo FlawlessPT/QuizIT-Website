@@ -102,7 +102,8 @@ export default function RoomsPage({ state, setState }) {
                 <Typography style={{ marginTop: 10, marginLeft: 8 }} variant="h6">
                     Available Rooms:
                 </Typography>
-                <RoomListMemoized rooms={state.rooms} clicked={clicked} />
+                <RoomsList rooms={state.rooms} clicked={clicked} />
+                {/* <RoomListMemoized rooms={state.rooms} clicked={clicked} /> */}
             </Paper>
         </div>
     );

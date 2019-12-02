@@ -11,8 +11,18 @@ import Paper from '@material-ui/core/Paper';
 import { ThemeProvider } from '@material-ui/core/styles';
 import withMemo from '../../util/withMemo';
 import { normalTheme, correctTheme } from '../../constant/theme';
+import worker_script from './timer.worker.js';
+
+let timerWorker = new Worker(worker_script);
+
+// if (timerWorker) {
+//     timerWorker.terminate();
+// }
+
+let questions = 0;
 
 function OptionButton({ onClick, disabled, text, theme }) {
+    console.log(questions);
     // This disableRipple check is hacky way of knowing through theme if the ripple effect should be enabled or not
     return (
         <ThemeProvider theme={theme}>
@@ -33,7 +43,6 @@ function OptionButton({ onClick, disabled, text, theme }) {
 const OptionButtonMemoized = withMemo(OptionButton, ['disabled', 'text', 'theme']);
 
 export default function QuestionPage({ state, setState }) {
-
     // let passedTime = 0;
     let intervalReference;
 
@@ -43,13 +52,14 @@ export default function QuestionPage({ state, setState }) {
     // React Hook state for disabling buttons
     const [hasAnswered, setHasAnswered] = useState(false);
     const [chapter, setChapter] = useState(1);
-    const [questionNumber, setQuestionNumber] = useState(0);
+    const [questionNumber, setQuestionNumber] = useState(questions);
     const [progress, setProgress] = useState(100);
     const [seconds, setSeconds] = useState(20);
     const [showAnswer, setShowAnswer] = useState(false);
 
     // Variable reference, it is mutable
     const passedTime = useRef(0);
+    const isVisible = useRef(true);
 
     /**
      * Send selected answers to the server
@@ -77,22 +87,18 @@ export default function QuestionPage({ state, setState }) {
     /**
      * Just externalizing the interval tick for better organization
      */
-    const tick = () => {
-        passedTime.current += 100;
-
-        setSeconds(Math.trunc(20.0 - (passedTime.current / 1000.0)));
-        let percentage = 100 - ((passedTime.current) / (20.0 * 1000.0) * 100.0);
-
-        if (percentage < 0) {
-            percentage = 0;
+    const tick = (seconds, percentage) => {
+        if (percentage <= 0) {
             setHasAnswered(true);
             setProgress(100);
             setShowAnswer(true);
 
-            clearInterval(intervalReference);
+            timerWorker.postMessage('STOP');
         } else {
             setProgress(percentage);
         }
+
+        setSeconds(seconds);
     }
 
     /**
@@ -122,45 +128,61 @@ export default function QuestionPage({ state, setState }) {
     }
 
     /**
+    * This function is called whenever the state from the properties is updated or
+    * when the questionNumber is updated
+    */
+    useEffect(() => {
+        // Simply update the question number
+        setQuestionNumber(questions);
+    }, [state, questionNumber]);
+
+    function handleNewQuestion(data) {
+        questions++;
+        // Updates application state
+        state.questions.push(data.detail);
+        setState({
+            ...state,
+            questions: state.questions,
+            currentQuestion: data.detail
+        });
+
+        // Re-enables the answer buttons
+        setHasAnswered(false);
+        setChapter(data.detail.chapter);
+        setShowAnswer(false);
+        const number = questionNumber + 1;
+        setQuestionNumber(number);
+
+
+        timerWorker.postMessage('START');
+    }
+
+    /**
      * This function is called only the component is mouting, doesn't matter
      * how many state updates you do, otherwise there would be multiple event listeners
      */
     useEffect(() => {
-        // Start listening for NEW_QUESTION messages from the server
-        document.addEventListener(NEW_QUESTION, (data) => {
-
-            // Updates application state
-            state.questions.push(data.detail);
-            setState({
-                ...state,
-                questions: state.questions,
-                currentQuestion: data.detail
-            });
-
-            // Re-enables the answer buttons
-            setHasAnswered(false);
-            setChapter(data.detail.chapter);
-            setShowAnswer(false);
-            const number = questionNumber + 1;
-            setQuestionNumber(number);
-
-            // Reset timer and interval and set a new one
-            passedTime.current = 0;
-
-            if (intervalReference) {
-                clearInterval(intervalReference);
+        // Listens from messages sent by the web worker
+        timerWorker.onmessage = (event) => {
+            if (event.data.type === 'time') {
+                const { percentage, seconds } = event.data.data;
+                tick(seconds, percentage);
             }
+        };
 
-            intervalReference = setInterval(tick, 100);
-        });
+        // Start listening for NEW_QUESTION messages from the server
+        document.addEventListener(NEW_QUESTION, handleNewQuestion);
 
         // returned function will be called on component unmount 
         return function clean() {
             // Clear event listeners otherwise there will be leaks
-            document.removeEventListener(NEW_QUESTION, () => { })
-            document.removeEventListener(END, () => { })
+            document.removeEventListener(NEW_QUESTION, handleNewQuestion);
+            document.removeEventListener(END, () => { });
             clearInterval(intervalReference);
+            // timerWorker.postMessage('STOP');
+            // timerWorker.terminate();
 
+            questions = 0;
             setState({
                 ...state,
                 questions: [],
@@ -168,15 +190,6 @@ export default function QuestionPage({ state, setState }) {
             })
         }
     }, [])
-
-    /**
-     * This function is called whenever the state from the properties is updated or
-     * when the questionNumber is updated
-     */
-    useEffect(() => {
-        // Simply update the question number
-        setQuestionNumber(state.questions.length);
-    }, [state, questionNumber]);
 
     return (
         <div style={{ flex: 1 }}>
@@ -226,11 +239,6 @@ export default function QuestionPage({ state, setState }) {
                             onClick={() => answerQuestion(3)}
                             disabled={getDisabled(3)}
                         />
-
-                        {/* This way button will render every 100 miliseconds due to the timer, but with the option above that wont happen */}
-                        {/* <ThemeProvider theme={() => getTheme(3)}>
-                            <Button onClick={() => answerQuestion(3)} disabled={getDisabled(3)} variant="contained" color="primary">{options ? <span>{options[3]}</span> : <span>D</span>}</Button>
-                        </ThemeProvider> */}
                     </div>
                 </Paper>
             </Paper>
