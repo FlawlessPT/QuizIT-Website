@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './result.css';
 import { ROOMS_PAGE } from '../../constant/pages';
 import Typography from '@material-ui/core/Typography';
@@ -18,6 +18,23 @@ export default function ResultPage({ state, setState }) {
         })
     }
 
+    useEffect(() => {
+        if (state.questions.length > 0) {
+            setState({
+                ...state,
+                questions: [],
+            })
+            console.log(state.questions);
+        } else {
+            console.log("hi");
+            console.log(state.questions);
+            // setState({
+            //     ...state,
+            //     questions: [],
+            // })
+        }
+    }, [state]);
+
     return (
         <div className="result-page page">
             <AppBar className="score-header" style={{ height: 56 }} position="static">
@@ -26,17 +43,17 @@ export default function ResultPage({ state, setState }) {
                 </Typography>
             </AppBar>
             <Paper className="score-container">
-                <Typography style={{ marginTop: 10}} variant="h6">
+                <Typography style={{ marginTop: 10 }} variant="h6">
                     Your score was: {score}
                 </Typography>
-                <Typography style={{ marginTop: 10}} variant="h6">
+                <Typography style={{ marginTop: 10 }} variant="h6">
                     Correct: {correct}
                 </Typography>
-                <Typography style={{ marginTop: 10}} variant="h6">
+                <Typography style={{ marginTop: 10 }} variant="h6">
                     Wrong: {wrong}
                 </Typography>
                 <Button className="score-submit-btn" variant="contained" color="primary" onClick={goToRooms}>
-                        Return
+                    Return
                 </Button>
             </Paper>
         </div>
