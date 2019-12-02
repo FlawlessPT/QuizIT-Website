@@ -13,16 +13,13 @@ import withMemo from '../../util/withMemo';
 import { normalTheme, correctTheme } from '../../constant/theme';
 import worker_script from './timer.worker.js';
 
+// Web worker instance
 let timerWorker = new Worker(worker_script);
 
-// if (timerWorker) {
-//     timerWorker.terminate();
-// }
-
+// local varible for the number of questions
 let questions = 0;
 
 function OptionButton({ onClick, disabled, text, theme }) {
-    console.log(questions);
     // This disableRipple check is hacky way of knowing through theme if the ripple effect should be enabled or not
     return (
         <ThemeProvider theme={theme}>

@@ -24,14 +24,6 @@ export default function ResultPage({ state, setState }) {
                 ...state,
                 questions: [],
             })
-            console.log(state.questions);
-        } else {
-            console.log("hi");
-            console.log(state.questions);
-            // setState({
-            //     ...state,
-            //     questions: [],
-            // })
         }
     }, [state]);
 
