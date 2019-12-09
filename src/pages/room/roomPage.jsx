@@ -119,18 +119,18 @@ export default function RoomPage({ state, setState }) {
             <Paper className="room-page page">
                 <div className="room-container">
                     <Typography style={{ marginTop: 10, marginLeft: 8 }} variant="h6">
-                        Joined Particpants:
+                        Jogadores participantes:
                     </Typography>
                     <List className="participants-list">
                         {participants.map(participant => participant ? <ParticipantItem key={participant.id} participant={participant} /> : undefined)}
                     </List>
                     <div className="room-options-container">
                         <div className="creater-options">
-                            {creator ? <Button className="creator-btn btn" onClick={startQuiz} variant="contained" color="primary">Start</Button> : undefined}
-                            {creator ? <Button className="creator-btn btn" onClick={deleteRoom} variant="contained" color="primary">Delete</Button> : undefined}
+                            {creator ? <Button className="creator-btn btn" onClick={startQuiz} variant="contained" color="primary">Iniciar</Button> : undefined}
+                            {creator ? <Button className="creator-btn btn" onClick={deleteRoom} variant="contained" color="primary">Apagar sala</Button> : undefined}
                         </div>
                         <div className="participant-options">
-                            {!creator ? <Button onClick={leaveRoom} variant="contained" color="primary">Leave</Button> : undefined}
+                            {!creator ? <Button onClick={leaveRoom} variant="contained" color="primary">Sair</Button> : undefined}
                         </div>
                     </div>
                 </div>

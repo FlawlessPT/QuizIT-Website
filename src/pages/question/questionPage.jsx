@@ -192,7 +192,7 @@ export default function QuestionPage({ state, setState }) {
         <div style={{ flex: 1 }}>
             <AppBar className="header" style={{ height: 56 }} position="static">
                 <Typography style={{ marginTop: 10, marginLeft: 8 }} variant="h6">
-                    Question: {questionNumber}
+                    Questão: {questionNumber}
                 </Typography>
             </AppBar>
             <Paper className="question-page page">
@@ -203,7 +203,7 @@ export default function QuestionPage({ state, setState }) {
                     </Typography>
                     <div className="chapter-and-progress-container">
                         <Typography style={{ textAlign: 'left', marginTop: 10, marginLeft: 8 }} variant="h6">
-                            Chapter: {chapter}
+                            Capítulo: {chapter}
                         </Typography>
                         <div className="progress-container">
                             <CircularProgress size={60} variant="static" value={progress} />
