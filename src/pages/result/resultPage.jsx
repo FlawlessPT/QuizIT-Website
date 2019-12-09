@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import './result.css';
 import { ROOMS_PAGE } from '../../constant/pages';
 import Typography from '@material-ui/core/Typography';
@@ -17,6 +17,15 @@ export default function ResultPage({ state, setState }) {
             currentPage: ROOMS_PAGE
         })
     }
+
+    useEffect(() => {
+        if (state.questions.length > 0) {
+            setState({
+                ...state,
+                questions: [],
+            })
+        }
+    }, [state]);
 
     return (
         <div className="result-page page">

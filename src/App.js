@@ -17,7 +17,7 @@ const initialState = {
   currentPage: 0
 };
 
-const AppContext = createContext(initialState);
+export const AppContext = createContext(initialState);
 
 function App() {
 
@@ -66,6 +66,10 @@ function App() {
 
     return function cleanup() {
       document.removeEventListener(SCORE, () => { })
+      // setState({
+      //   ...state,
+      //   questions: []
+      // })
     }
   }, [state]);
 
