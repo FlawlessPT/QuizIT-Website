@@ -92,7 +92,7 @@ export default function RoomsPage({ state, setState }) {
         <div className="all-container">
             <AppBar className="header" style={{ height: 56 }} position="static">
                 <Typography style={{ marginTop: 10, marginLeft: 8 }} variant="h6">
-                    Chose a room
+                    Escolhe uma sala
                 </Typography>
             </AppBar>
 
@@ -100,7 +100,7 @@ export default function RoomsPage({ state, setState }) {
                 <CreateRoomForm />
                 <Divider />
                 <Typography style={{ marginTop: 10, marginLeft: 8 }} variant="h6">
-                    Available Rooms:
+                    Salas disponíveis:
                 </Typography>
                 <RoomListMemoized rooms={state.rooms} clicked={clicked} />
             </Paper>

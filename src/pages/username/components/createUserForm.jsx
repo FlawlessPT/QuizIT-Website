@@ -21,7 +21,7 @@ export default function CreateUserForm({}) {
             return true;
         } else {
             setHasError(true);
-            setErrorMessage("Username can't be empty!");
+            setErrorMessage("O nickname não pode estar vazio!");
             return false;
         }
     }
@@ -44,7 +44,7 @@ export default function CreateUserForm({}) {
                         helperText={errorMessage}
                         className="text-input"
                         onChange={text => validate(text.target.value)}
-                        label="Username"
+                        label="Nickname"
                         variant="outlined"
                     />
                 </form>
@@ -56,7 +56,7 @@ export default function CreateUserForm({}) {
                     color="primary"
                     onClick={event => createUser(event)}
                 >
-                    Start
+                    Iniciar
             </Button>
             </div>
         </div>

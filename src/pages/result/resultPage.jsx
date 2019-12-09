@@ -22,21 +22,21 @@ export default function ResultPage({ state, setState }) {
         <div className="result-page page">
             <AppBar className="score-header" style={{ height: 56 }} position="static">
                 <Typography style={{ marginTop: 10, marginLeft: 8 }} variant="h6">
-                    Score
+                    Resultado
                 </Typography>
             </AppBar>
             <Paper className="score-container">
                 <Typography style={{ marginTop: 10}} variant="h6">
-                    Your score was: {score}
+                    O teu score foi: {score}
                 </Typography>
                 <Typography style={{ marginTop: 10}} variant="h6">
-                    Correct: {correct}
+                    Correto: {correct}
                 </Typography>
                 <Typography style={{ marginTop: 10}} variant="h6">
-                    Wrong: {wrong}
+                    Errado: {wrong}
                 </Typography>
                 <Button className="score-submit-btn" variant="contained" color="primary" onClick={goToRooms}>
-                        Return
+                        Voltar
                 </Button>
             </Paper>
         </div>
