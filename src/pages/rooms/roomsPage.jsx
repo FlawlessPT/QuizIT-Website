@@ -41,7 +41,6 @@ export default function RoomsPage({ state, setState }) {
         // Called when component is mouting
         // Request the server of the available rooms to join
         getRoomsRequest();
-        getTopScoreRequest();
 
         // Listener for the server response of the get rooms request
         document.addEventListener(GET_ROOMS, (data) => {
