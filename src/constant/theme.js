@@ -1,20 +1,14 @@
 import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
-import {green, lightBlue, red} from '@material-ui/core/colors';
+import { deepOrange, lightGreen } from '@material-ui/core/colors';
 
 export const normalTheme = createMuiTheme({
     palette: {
-        primary: lightBlue,
+        primary: deepOrange,
     },
 });
 
 export const correctTheme = createMuiTheme({
     palette: {
-        primary: green,
-    },
-});
-
-export const wrongTheme = createMuiTheme({
-    palette: {
-        primary: red,
+        primary: lightGreen,
     },
 });

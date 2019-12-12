@@ -41,6 +41,7 @@ export default function RoomsPage({ state, setState }) {
         // Called when component is mouting
         // Request the server of the available rooms to join
         getRoomsRequest();
+        getTopScoreRequest();
 
         // Listener for the server response of the get rooms request
         document.addEventListener(GET_ROOMS, (data) => {
@@ -91,7 +92,7 @@ export default function RoomsPage({ state, setState }) {
         <div className="all-container">
             <AppBar className="header" style={{ height: 56 }} position="static">
                 <Typography style={{ marginTop: 10, marginLeft: 8 }} variant="h6">
-                    Escolhe uma sala
+                    Chose a room
                 </Typography>
             </AppBar>
 
@@ -99,7 +100,7 @@ export default function RoomsPage({ state, setState }) {
                 <CreateRoomForm />
                 <Divider />
                 <Typography style={{ marginTop: 10, marginLeft: 8 }} variant="h6">
-                    Salas disponíveis:
+                    Available Rooms:
                 </Typography>
                 <RoomsList rooms={state.rooms} clicked={clicked} />
                 {/* <RoomListMemoized rooms={state.rooms} clicked={clicked} /> */}

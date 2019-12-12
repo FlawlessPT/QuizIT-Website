@@ -20,19 +20,11 @@
 }
 
 .score-submit-btn {
-    margin-top: 20px !important;
+    margin-top: 40px !important;
     width: 80% !important;
     margin-left: auto !important;
     margin-right: auto !important;
-    grid-row: 10/11;
-}
-
-.wrongChapters-submit-btn {
-    margin-top: 20px !important;
-    width: 80% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    grid-row: 11/11;
+    grid-row: 5/5   ;
 }
 
 @media only screen and (min-width: 600px) {

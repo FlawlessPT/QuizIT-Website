@@ -35,7 +35,7 @@ export default function UsernamePage({ state, setState }) {
             <Paper className="container">
                 <div className="title-container">
                     <Typography variant="h4" component="h3">
-                        Escolhe um nickname:
+                        Chose a username:
                     </Typography>
                 </div>
                 <CreateUserForm />

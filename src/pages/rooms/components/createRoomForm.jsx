@@ -17,7 +17,7 @@ export default function CreateRoomForm({ }) {
             return true;
         } else {
             setHasError(true);
-            setErrorMessage("O nome da sala não pode estar vazio.");
+            setErrorMessage("Room name can't be empty!");
             return false;
         }
     }
@@ -39,12 +39,12 @@ export default function CreateRoomForm({ }) {
                     helperText={errorMessage}
                     onChange={input => validate(input.target.value)}
                     className="text-input"
-                    label="Nome da sala"
+                    label="Room Name"
                     variant="outlined"
                 />
             </form>
             <Button className="submit-btn" variant="contained" color="primary" onClick={event => createRoom(event)}>
-                Criar
+                Create
             </Button>
         </div>
     );
