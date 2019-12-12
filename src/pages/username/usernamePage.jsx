@@ -9,22 +9,24 @@ import CreateUserForm from './components/createUserForm';
 
 export default function UsernamePage({ state, setState }) {
 
+    function handleUserCreated(data) {
+        setState({
+            ...state,
+            id: data.detail.id,
+            username: data.detail.name,
+            currentPage: ROOMS_PAGE
+        });
+    }
+
     useEffect(() => {
         // Called when component is mouting
         // Listen to when the user is created and update app state
-        document.addEventListener(USER_CREATED, (data) => {
-            setState({
-                ...state,
-                id: data.detail.id,
-                username: data.detail.name,
-                currentPage: ROOMS_PAGE
-            });
-        });
+        document.addEventListener(USER_CREATED, handleUserCreated);
 
         // returned function will be called on component unmount 
         return () => {
             // Clear event listeners otherwise there will be leaks
-            document.removeEventListener(USER_CREATED, () => { })
+            document.removeEventListener(USER_CREATED, handleUserCreated)
         }
     }, [])
 
@@ -35,7 +37,7 @@ export default function UsernamePage({ state, setState }) {
             <Paper className="container">
                 <div className="title-container">
                     <Typography variant="h4" component="h3">
-                        Chose a username:
+                        Escolhe um nome:
                     </Typography>
                 </div>
                 <CreateUserForm />

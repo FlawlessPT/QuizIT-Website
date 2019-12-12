@@ -7,7 +7,7 @@ import TextField from '@material-ui/core/TextField';
  * Externalize application logic and also prevent full page re-render
  * @param {*} param0 
  */
-export default function CreateUserForm({}) {
+export default function CreateUserForm({ }) {
     const [username, setUsername] = useState('');
     const [hasError, setHasError] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
@@ -21,7 +21,7 @@ export default function CreateUserForm({}) {
             return true;
         } else {
             setHasError(true);
-            setErrorMessage("Username can't be empty!");
+            setErrorMessage("O nome não pode estar vazio!");
             return false;
         }
     }
@@ -44,7 +44,7 @@ export default function CreateUserForm({}) {
                         helperText={errorMessage}
                         className="text-input"
                         onChange={text => validate(text.target.value)}
-                        label="Username"
+                        label="Nome"
                         variant="outlined"
                     />
                 </form>
@@ -56,7 +56,7 @@ export default function CreateUserForm({}) {
                     color="primary"
                     onClick={event => createUser(event)}
                 >
-                    Start
+                    Iniciar
             </Button>
             </div>
         </div>

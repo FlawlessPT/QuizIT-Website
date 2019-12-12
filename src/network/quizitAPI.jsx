@@ -28,6 +28,7 @@ function attemptToConnect() {
 }
 
 function connect() {
+    //let ws = new WebSocket("wss://pt-quiz-it.herokuapp.com/websocket/chat");
     let ws = new WebSocket("ws://localhost:8080/websocket/chat");
     ws.onopen = (event) => webSocketConnectedHandler(event);
     ws.onclose = (event) => webSocketDisconnectedHandler(event);
@@ -47,17 +48,22 @@ function webSocketConnectedHandler(event) {
 
 function webSocketDisconnectedHandler(event) {
     console.log("Disconnected");
-
+    console.log(event);
     if (isAttempting !== true) {
         connectInterval = setInterval(attemptToConnect, connectIntervalTime);
     }
 }
 
 function webSocketOnMessageHandler(event) {
-    console.log("Received message: " + event.data);
+    // console.log("Received message: " + event.data);
     const message = JSON.parse(event.data);
 
     const customEvent = new CustomEvent(message.type, { detail: message.data });
+
+    if (message.type === "PING") {
+        send({ type: 'PONG', data: undefined });
+    }
+
     document.dispatchEvent(customEvent);
 }
 

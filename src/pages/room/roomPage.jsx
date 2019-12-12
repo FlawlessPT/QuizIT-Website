@@ -11,9 +11,24 @@ import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import AppBar from '@material-ui/core/AppBar';
 import Paper from '@material-ui/core/Paper';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 
 export default function RoomPage({ state, setState }) {
     const { name, participants, creator } = state.room;
+
+    const [open, setOpen] = React.useState(false);
+
+    const handleClose = () => {
+        setOpen(false);
+        setState({
+            ...state,
+            currentPage: ROOMS_PAGE
+        })
+    };
 
     /**
      * Starts the quiz, this option should only be possible to the room creator
@@ -43,69 +58,87 @@ export default function RoomPage({ state, setState }) {
         })
     };
 
+    function handleDeleteRoom(data) {
+        state.rooms = state.rooms.filter(x => x.id !== data.detail);
+
+        const newState = {
+            ...state,
+            room: {},
+            rooms: state.rooms
+        };
+
+        if (state.room.id === data.detail && !state.room.creator) {
+            setOpen(true);
+        } else {
+            newState.currentPage = ROOMS_PAGE;
+        }
+
+        setState(newState);
+    }
+
+    function handleUserJoin(data) {
+        const room = state.room;
+
+        room.participants.push(data.detail);
+
+        setState({
+            ...state,
+            room: room
+        });
+    }
+
+    function handleUserLeft(data) {
+        const room = state.room;
+        for (let i = 0; i < room.participants.length; i++) {
+            if (room.participants[i].id === data.detail.id) {
+                room.participants.splice(i, 1);
+                break;
+            }
+        }
+
+        setState({
+            ...state,
+            room: room
+        });
+    }
+
+    function handleLeaveRoom(data) {
+        setState({
+            ...state,
+            currentPage: ROOMS_PAGE,
+            room: {}
+        });
+    }
+
+    function handleStart(data) {
+        setState({
+            ...state,
+            currentPage: QUESTION_PAGE
+        });
+    }
+
     useEffect(() => {
         // Called when component is mouting
         // Listens for USER_LEFT message in order to update the list
-        document.addEventListener(USER_LEFT, (data) => {
-            const room = state.room;
-
-            for (let i = 0; i < room.participants.length; i++) {
-                if (room.participants[i].id === data.detail.id) {
-                    room.participants.splice(i, 1);
-                }
-            }
-
-            setState({
-                ...state,
-                room: room
-            });
-        });
+        document.addEventListener(USER_LEFT, handleUserLeft);
 
         // Just like the other but in this case for joins
-        document.addEventListener(USER_JOIN, (data) => {
-            const room = state.room;
-
-            room.participants.push(data.detail);
-
-            setState({
-                ...state,
-                room: room
-            });
-        });
+        document.addEventListener(USER_JOIN, handleUserJoin);
 
         // Listen for when the quiz starts
-        document.addEventListener(START, (data) => {
-            setState({
-                ...state,
-                currentPage: QUESTION_PAGE
-            });
-        });
+        document.addEventListener(START, handleStart);
 
-        document.addEventListener(LEAVE_ROOM, (data) => {
-            setState({
-                ...state,
-                currentPage: ROOMS_PAGE,
-                room: {}
-            });
-        });
+        document.addEventListener(LEAVE_ROOM, handleLeaveRoom);
 
-        document.addEventListener(DELETE_ROOM, (data) => {
-            state.rooms = state.rooms.filter(x => x.id !== data.detail.id)
-            setState({
-                ...state,
-                currentPage: ROOMS_PAGE,
-                room: {},
-                rooms: state.rooms
-            });
-        });
+        document.addEventListener(DELETE_ROOM, handleDeleteRoom);
 
         return function clean() {
             // Clear event listeners otherwise there will be leaks
-            document.removeEventListener(START, () => { })
-            document.removeEventListener(USER_LEFT, () => { })
-            document.removeEventListener(USER_JOIN, () => { })
-            document.removeEventListener(LEAVE_ROOM, () => { })
-            document.removeEventListener(DELETE_ROOM, () => { })
+            document.removeEventListener(START, handleStart);
+            document.removeEventListener(USER_LEFT, handleUserLeft);
+            document.removeEventListener(USER_JOIN, handleUserJoin);
+            document.removeEventListener(LEAVE_ROOM, handleLeaveRoom);
+            document.removeEventListener(DELETE_ROOM, handleDeleteRoom);
         }
     }, [])
 
@@ -119,22 +152,40 @@ export default function RoomPage({ state, setState }) {
             <Paper className="room-page page">
                 <div className="room-container">
                     <Typography style={{ marginTop: 10, marginLeft: 8 }} variant="h6">
-                        Joined Particpants:
+                        Jogadores participantes:
                     </Typography>
                     <List className="participants-list">
-                        {participants.map(participant => participant ? <ParticipantItem key={participant.id} participant={participant} /> : undefined)}
+                        {participants ? participants.map(participant => participant ? <ParticipantItem key={participant.id} participant={participant} /> : undefined) : undefined}
                     </List>
                     <div className="room-options-container">
                         <div className="creater-options">
-                            {creator ? <Button className="creator-btn btn" onClick={startQuiz} variant="contained" color="primary">Start</Button> : undefined}
-                            {creator ? <Button className="creator-btn btn" onClick={deleteRoom} variant="contained" color="primary">Delete</Button> : undefined}
+                            {creator ? <Button className="creator-btn btn" onClick={startQuiz} variant="contained" color="primary">Iniciar</Button> : undefined}
+                            {creator ? <Button className="creator-btn btn" onClick={deleteRoom} variant="contained" color="primary">Apagar sala</Button> : undefined}
                         </div>
                         <div className="participant-options">
-                            {!creator ? <Button onClick={leaveRoom} variant="contained" color="primary">Leave</Button> : undefined}
+                            {!creator ? <Button onClick={leaveRoom} variant="contained" color="primary">Sair</Button> : undefined}
                         </div>
                     </div>
                 </div>
             </Paper>
+            <Dialog
+                open={open}
+                onClose={handleClose}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">{"Sala apagada!"}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        A sala em que estava foi apagada!
+          </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleClose} color="primary" autoFocus>
+                        Voltar para as salas
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 }

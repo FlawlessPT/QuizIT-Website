@@ -17,3 +17,4 @@ export const NEW_ROOM = 'NEW_ROOM';
 export const TOP_SCORE = 'TOP_SCORE';
 export const LEAVE_ROOM = 'LEAVE_ROOM';
 export const DELETE_ROOM = 'DELETE_ROOM';
+export const WRONG_QUESTIONS = 'WRONG_QUESTIONS';

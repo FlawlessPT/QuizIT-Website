@@ -53,7 +53,7 @@ const workercode = () => {
     })
 }
 
-// Due to problems with the webpack transpilling
+// Due problems with the webpack transpiling
 // I convert the code into to a string
 let code = workercode.toString();
 code = code.substring(code.indexOf("{")+1, code.lastIndexOf("}"));

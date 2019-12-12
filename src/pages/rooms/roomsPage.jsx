@@ -1,6 +1,6 @@
-import React, { useEffect, useState, Fragment } from 'react';
-import { ROOM_PAGE } from '../../constant/pages';
-import { createRoomRequest, joinRoomRequest, getRoomsRequest, getTopScoreRequest } from '../../network/quizitAPI';
+import React, { useEffect, Fragment } from 'react';
+import { ROOM_PAGE, HIGHSCORES_PAGE } from '../../constant/pages';
+import { joinRoomRequest, getRoomsRequest } from '../../network/quizitAPI';
 import { GET_ROOMS, NEW_ROOM, ROOM_CREATED, ROOM_JOINED } from '../../constant/messageTypes';
 import './rooms.css';
 import List from '@material-ui/core/List';
@@ -11,7 +11,19 @@ import Paper from '@material-ui/core/Paper';
 import CreateRoomForm from './components/createRoomForm';
 import AppBar from '@material-ui/core/AppBar';
 import Typography from '@material-ui/core/Typography';
+import Fab from '@material-ui/core/Fab';
 import withMemo from '../../util/withMemo';
+
+let requestRooms = false;
+
+function request() {
+    if (!requestRooms) {
+        getRoomsRequest();
+        requestRooms = true;
+        setInterval(() => { requestRooms = true }, 2000);
+    }
+
+}
 
 function RoomsList({ rooms, clicked }) {
     return (
@@ -37,54 +49,70 @@ export default function RoomsPage({ state, setState }) {
         joinRoomRequest(id);
     }
 
+    const goToStopScores = () => {
+        setState({
+            ...state,
+            currentPage: HIGHSCORES_PAGE
+        })
+    }
+
+    function handleGetRooms(data) {
+        setState({
+            ...state,
+            rooms: data.detail
+        })
+    }
+
+    function handleNewRoom(data) {
+        state.rooms.push(data.detail);
+        setState({
+            ...state,
+            rooms: state.rooms
+        })
+    }
+
+    function handleRoomCreated(data) {
+        setState({
+            ...state,
+            room: data.detail,
+            currentPage: ROOM_PAGE
+        })
+    }
+
+    function handleRoomJoined(data) {
+        setState({
+            ...state,
+            room: data.detail,
+            currentPage: ROOM_PAGE
+        });
+    }
+
     useEffect(() => {
         // Called when component is mouting
         // Request the server of the available rooms to join
         getRoomsRequest();
-        getTopScoreRequest();
 
         // Listener for the server response of the get rooms request
-        document.addEventListener(GET_ROOMS, (data) => {
-            setState({
-                ...state,
-                rooms: data.detail
-            })
-        });
+        document.addEventListener(GET_ROOMS, handleGetRooms);
 
         // Listener for new created rooms
-        document.addEventListener(NEW_ROOM, (data) => {
-            state.rooms.push(data.detail);
-            setState({
-                ...state,
-                rooms: state.rooms
-            })
-        });
+        document.addEventListener(NEW_ROOM, handleNewRoom);
 
         // Listener for your created room
-        document.addEventListener(ROOM_CREATED, (data) => {
-            setState({
-                ...state,
-                room: data.detail,
-                currentPage: ROOM_PAGE
-            })
-        });
+        document.addEventListener(ROOM_CREATED, handleRoomCreated);
 
         // Listener for when you joined the room
-        document.addEventListener(ROOM_JOINED, (data) => {
-            setState({
-                ...state,
-                room: data.detail,
-                currentPage: ROOM_PAGE
-            });
-        })
+        document.addEventListener(ROOM_JOINED, handleRoomJoined)
+
+
 
         // returned function will be called on component unmount 
         return () => {
             // Clear event listeners otherwise there will be leaks
-            document.removeEventListener(GET_ROOMS, () => { });
-            document.removeEventListener(NEW_ROOM, () => { });
-            document.removeEventListener(ROOM_CREATED, () => { });
-            document.removeEventListener(ROOM_JOINED, () => { });
+            document.removeEventListener(GET_ROOMS, handleGetRooms);
+            document.removeEventListener(NEW_ROOM, handleNewRoom);
+            document.removeEventListener(ROOM_CREATED, handleRoomCreated);
+            document.removeEventListener(ROOM_JOINED, handleRoomJoined);
         }
     }, [])
 
@@ -92,7 +120,7 @@ export default function RoomsPage({ state, setState }) {
         <div className="all-container">
             <AppBar className="header" style={{ height: 56 }} position="static">
                 <Typography style={{ marginTop: 10, marginLeft: 8 }} variant="h6">
-                    Chose a room
+                    Escolhe uma sala
                 </Typography>
             </AppBar>
 
@@ -100,11 +128,14 @@ export default function RoomsPage({ state, setState }) {
                 <CreateRoomForm />
                 <Divider />
                 <Typography style={{ marginTop: 10, marginLeft: 8 }} variant="h6">
-                    Available Rooms:
+                    Salas disponíveis:
                 </Typography>
                 <RoomsList rooms={state.rooms} clicked={clicked} />
                 {/* <RoomListMemoized rooms={state.rooms} clicked={clicked} /> */}
             </Paper>
+            <Fab onClick={goToStopScores} className="top-scores-fab" color="primary" variant="extended">
+                Top Scores
+            </Fab>
         </div>
     );
 }
