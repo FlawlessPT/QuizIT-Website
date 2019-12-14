@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './question.css';
-import { NEW_QUESTION, SCORE } from '../../constant/messageTypes';
-import { RESULT_PAGE } from '../../constant/pages';
+import { NEW_QUESTION, SCORE, WRONG_QUESTIONS } from '../../constant/messageTypes';
+import { RESULT_PAGE, QUESTION_PAGE } from '../../constant/pages';
 import { sendAnswerRequest } from '../../network/quizitAPI';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Typography from '@material-ui/core/Typography';
@@ -12,18 +12,47 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import withMemo from '../../util/withMemo';
 import { normalTheme, correctTheme } from '../../constant/theme';
 import worker_script from './timer.worker.js';
+import { useHistory, Prompt } from "react-router-dom";
+import { handleReplacePageAnimated } from "../../App";
+import TextTransition, { presets } from "react-text-transition";
+
 
 // Web worker instance
 let timerWorker = new Worker(worker_script);
 
 // local varible for the number of questions
-let questions = 0;
+let questions = 1;
 
-function OptionButton({ onClick, disabled, text, theme }) {
+function OptionButton({ onClick, disabled, text, theme, classes }) {
+    const [showAnimation, setShowAnimation] = useState(true);
+    const lastText = useRef('');
+    const componentIsMounted = useRef(true)
+
+    useEffect(() => {
+        componentIsMounted.current = true;
+
+        return () => {
+            componentIsMounted.current = false;
+        }
+    }, []);
+
+    if (lastText.current !== text) {
+        lastText.current = text;
+        setShowAnimation(true);
+
+    } else if (showAnimation) {
+        setTimeout(() => {
+            if (componentIsMounted.current) {
+                setShowAnimation(false)
+            }
+        }, 1500);
+    }
+
     // This disableRipple check is hacky way of knowing through theme if the ripple effect should be enabled or not
     return (
         <ThemeProvider theme={theme}>
             <Button
+                className={showAnimation ? classes : ''}
                 disableRipple={theme.palette.primary[50] === '#f1f8e9'}
                 variant="contained"
                 color="primary"
@@ -40,6 +69,9 @@ function OptionButton({ onClick, disabled, text, theme }) {
 const OptionButtonMemoized = withMemo(OptionButton, ['disabled', 'text', 'theme']);
 
 export default function QuestionPage({ state, setState }) {
+    const history = useHistory();
+    const [exitAnimation, setExitAnimation] = useState(false);
+
 
     // Deconstructs the state object
     const { question, options, currentQuestion } = state.currentQuestion;
@@ -57,7 +89,8 @@ export default function QuestionPage({ state, setState }) {
     // Variable reference, it is mutable
     const answered = useRef(false);
     const componentIsMounted = useRef(true)
-
+    const score = useRef(undefined);
+    const wrongQuestions = useRef(undefined);
 
     /**
      * Send selected answers to the server
@@ -170,6 +203,7 @@ export default function QuestionPage({ state, setState }) {
         questions++;
         // Updates application state
         state.questions.push(data.detail);
+        
         setState({
             ...state,
             questions: state.questions,
@@ -182,7 +216,6 @@ export default function QuestionPage({ state, setState }) {
         setShowAnswer(false);
         const number = questionNumber + 1;
         setQuestionNumber(number);
-
 
         timerWorker.postMessage('START');
     }
@@ -202,14 +235,33 @@ export default function QuestionPage({ state, setState }) {
     }
 
     function handleScore(data) {
+        score.current = data.detail;
 
-        setState({
-            ...state,
-            lastGameScore: data.detail,
-            currentPage: RESULT_PAGE
-        });
+        if (wrongQuestions.current) {
+            setState({
+                ...state,
+                lastGameScore: data.detail,
+                wrongChapters: wrongQuestions.current,
+                currentPage: RESULT_PAGE
+            });
+
+        }
 
         timerWorker.postMessage('STOP');
+        handleReplacePageAnimated(setExitAnimation, history, '/result');
+    }
+
+    function handleWrongQuestions(data) {
+        wrongQuestions.current = data.detail;
+
+        if (score.current) {
+            setState({
+                ...state,
+                wrongChapters: data.detail,
+                lastGameScore: score.current,
+                currentPage: RESULT_PAGE
+            });
+        }
     }
 
     /**
@@ -227,19 +279,25 @@ export default function QuestionPage({ state, setState }) {
             }
         };
 
+        timerWorker.postMessage('START');
+
         document.addEventListener(SCORE, handleScore);
 
         // Start listening for NEW_QUESTION messages from the server
         document.addEventListener(NEW_QUESTION, handleNewQuestion);
+        document.addEventListener(WRONG_QUESTIONS, handleWrongQuestions);
 
         // returned function will be called on component unmount 
         return function clean() {
             // Clear event listeners otherwise there will be leaks
             document.removeEventListener(NEW_QUESTION, handleNewQuestion);
+            document.removeEventListener(WRONG_QUESTIONS, handleWrongQuestions);
             document.removeEventListener(SCORE, handleScore);
             componentIsMounted.current = false
+            wrongQuestions.current = undefined;
+            score.current = undefined;
 
-            questions = 0;
+            questions = 1;
             setState({
                 ...state,
                 questions: [],
@@ -262,19 +320,37 @@ export default function QuestionPage({ state, setState }) {
 
     }, [state.currentQuestion.options])
 
+    let classes = 'question-page page animated ';
+
+    if (exitAnimation) {
+        classes += 'slideOutLeft faster'
+    } else {
+        classes += 'slideInLeft faster';
+    }
 
     return (
-        <div style={{ flex: 1 }}>
+        <div className="question-page container">
+            <Prompt
+                when={state.currentPage !== RESULT_PAGE}
+                message={location => `Se sair vai perder esta`}
+            />
             <AppBar className="header" style={{ height: 56 }} position="static">
                 <Typography style={{ marginTop: 10, marginLeft: 8 }} variant="h6">
-                    Questão: {questionNumber}
+                    Questão: 
+                    <TextTransition
+                        inline
+                        text={questionNumber}
+                        springConfig={presets.wobbly}
+                    />
                 </Typography>
             </AppBar>
-            <Paper className="question-page page">
+            <div className={classes}>
                 <Paper className="container question-option-container">
-
                     <Typography style={{ marginTop: 10, marginLeft: 8 }} variant="h6">
-                        {question}
+                        <TextTransition
+                            text={question}
+                            springConfig={presets.wobbly}
+                        />
                     </Typography>
                     <div className="chapter-and-progress-container">
                         <Typography style={{ textAlign: 'left', marginTop: 10, marginLeft: 8 }} variant="h6">
@@ -288,24 +364,28 @@ export default function QuestionPage({ state, setState }) {
 
                     <div className="options-container">
                         <OptionButtonMemoized
+                            classes="animated pulse fast"
                             theme={getTheme(0)}
                             text={options ? shuffledOptions[0] : 'A'}
                             onClick={() => answerQuestion(0)}
                             disabled={getDisabled(0)}
                         />
                         <OptionButtonMemoized
+                            classes="animated delay-300 pulse fast"
                             theme={getTheme(1)}
                             text={options ? shuffledOptions[1] : 'B'}
                             onClick={() => answerQuestion(1)}
                             disabled={getDisabled(1)}
                         />
                         <OptionButtonMemoized
+                            classes="animated delay-500 pulse fast"
                             theme={getTheme(2)}
                             text={options ? shuffledOptions[2] : 'C'}
                             onClick={() => answerQuestion(2)}
                             disabled={getDisabled(2)}
                         />
                         <OptionButtonMemoized
+                            classes="animated delay-700 pulse fast"
                             theme={getTheme(3)}
                             text={options ? shuffledOptions[3] : 'D'}
                             onClick={() => answerQuestion(3)}
@@ -313,7 +393,7 @@ export default function QuestionPage({ state, setState }) {
                         />
                     </div>
                 </Paper>
-            </Paper>
+            </div>
         </div>
     );
 }

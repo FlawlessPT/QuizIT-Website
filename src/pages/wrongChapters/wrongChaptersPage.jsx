@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './wrongChapters.css';
 import AppBar from "@material-ui/core/AppBar";
 import Paper from '@material-ui/core/Paper';
@@ -8,16 +8,29 @@ import { RESULT_PAGE, WRONG_QUESTIONS_PAGE } from "../../constant/pages";
 import Divider from "@material-ui/core/Divider";
 import List from '@material-ui/core/List';
 import ChapterItem from './components/chapterItem';
+import { useHistory } from "react-router-dom";
+import { handleReplacePageAnimated } from "../../App";
 
 export default function WrongChaptersPage({ state, setState }) {
+    const history = useHistory();
+    const [exitAnimation, setExitAnimation] = useState(false);
 
     const goToResult = () => {
         // Go to result page again
         setState({
             ...state,
             currentPage: RESULT_PAGE
-        })
+        });
+        handleReplacePageAnimated(setExitAnimation, history, '/result');
     };
+
+    let classes = 'animated ';
+
+    if (exitAnimation) {
+        classes += 'slideOutLeft faster'
+    } else {
+        classes += 'slideInLeft faster';
+    }
 
     return (
         <div className="wrongChapters-page page">
@@ -26,19 +39,21 @@ export default function WrongChaptersPage({ state, setState }) {
                     Capítulos
                 </Typography>
             </AppBar>
-            <Paper className="wrongChapters-container">
-                <Typography style={{ marginTop: 10 }} variant="h6">
-                    Respostas erradas:
+            <div className={classes}>
+                <Paper className="wrongChapters-container ">
+                    <Typography style={{ marginTop: 10 }} variant="h6">
+                        Respostas erradas:
                 </Typography>
-                <Divider style={{ marginTop: 10 }} />
+                    <Divider style={{ marginTop: 10 }} />
 
-                <List>
-                    {state.wrongChapters ? Object.entries(state.wrongChapters).map(chapter => <ChapterItem key={chapter[0]} chapterData={chapter} />) : undefined}
-                </List>
-                <Button className="wrongChapters-return-btn" variant="contained" color="primary" onClick={goToResult}>
-                    Voltar aos resultados
+                    <List>
+                        {state.wrongChapters ? Object.entries(state.wrongChapters).map(chapter => <ChapterItem key={chapter[0]} chapterData={chapter} />) : undefined}
+                    </List>
+                    <Button className="wrongChapters-return-btn" variant="contained" color="primary" onClick={goToResult}>
+                        Voltar aos resultados
                 </Button>
-            </Paper>
+                </Paper>
+            </div>
         </div>
     );
 }

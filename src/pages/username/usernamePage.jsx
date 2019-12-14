@@ -6,8 +6,14 @@ import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import logo from "../../images/logo.png";
 import CreateUserForm from './components/createUserForm';
+import { useHistory } from "react-router-dom";
+import { useState } from 'react';
+import { handleReplacePageAnimated } from "../../App";
 
 export default function UsernamePage({ state, setState }) {
+    const history = useHistory();
+
+    const [exitAnimation, setExitAnimation] = useState(false);
 
     function handleUserCreated(data) {
         setState({
@@ -16,8 +22,9 @@ export default function UsernamePage({ state, setState }) {
             username: data.detail.name,
             currentPage: ROOMS_PAGE
         });
+        handleReplacePageAnimated(setExitAnimation, history, '/rooms');
     }
-
+    // animated infinite bounce
     useEffect(() => {
         // Called when component is mouting
         // Listen to when the user is created and update app state
@@ -30,9 +37,16 @@ export default function UsernamePage({ state, setState }) {
         }
     }, [])
 
-    return (
+    let classes = "username-page page animated ";
 
-        <div className="username-page page">
+    if (exitAnimation) {
+        classes += 'zoomOut fast'
+    } else {
+        classes += 'zoomIn'
+    }
+
+    return (
+        <div className={classes}>
             <img className="logo" src={logo} />
             <Paper className="container">
                 <div className="title-container">

@@ -1,4 +1,4 @@
-import React, { useEffect, Fragment } from 'react';
+import React, { useEffect, Fragment, useState } from 'react';
 import { ROOM_PAGE, HIGHSCORES_PAGE } from '../../constant/pages';
 import { joinRoomRequest, getRoomsRequest } from '../../network/quizitAPI';
 import { GET_ROOMS, NEW_ROOM, ROOM_CREATED, ROOM_JOINED } from '../../constant/messageTypes';
@@ -12,7 +12,8 @@ import CreateRoomForm from './components/createRoomForm';
 import AppBar from '@material-ui/core/AppBar';
 import Typography from '@material-ui/core/Typography';
 import Fab from '@material-ui/core/Fab';
-import withMemo from '../../util/withMemo';
+import { useHistory } from "react-router-dom";
+import { handleReplacePageAnimated } from "../../App";
 
 let requestRooms = false;
 
@@ -39,10 +40,10 @@ function RoomsList({ rooms, clicked }) {
     );
 }
 
-// Prevent wasteful re-renderings
-const RoomListMemoized = withMemo(RoomsList, ['rooms']);
-
 export default function RoomsPage({ state, setState }) {
+
+    const history = useHistory();
+    const [exitAnimation, setExitAnimation] = useState(false);
 
     const clicked = (id) => {
         // When a room is clicked
@@ -53,7 +54,8 @@ export default function RoomsPage({ state, setState }) {
         setState({
             ...state,
             currentPage: HIGHSCORES_PAGE
-        })
+        });
+        handleReplacePageAnimated(setExitAnimation, history, '/scores');
     }
 
     function handleGetRooms(data) {
@@ -76,7 +78,8 @@ export default function RoomsPage({ state, setState }) {
             ...state,
             room: data.detail,
             currentPage: ROOM_PAGE
-        })
+        });
+        handleReplacePageAnimated(setExitAnimation, history, '/room');
     }
 
     function handleRoomJoined(data) {
@@ -85,6 +88,8 @@ export default function RoomsPage({ state, setState }) {
             room: data.detail,
             currentPage: ROOM_PAGE
         });
+
+        handleReplacePageAnimated(setExitAnimation, history, '/room');
     }
 
     useEffect(() => {
@@ -116,6 +121,21 @@ export default function RoomsPage({ state, setState }) {
         }
     }, [])
 
+    let classes = "animated ";
+    let fabClasses = "top-scores-fab animated ";
+
+    if (exitAnimation) {
+        classes += 'slideOutLeft faster'
+    } else {
+        classes += 'slideInRight faster'
+    }
+
+    if (exitAnimation) {
+        fabClasses += 'slideOutDown faster';
+    } else {
+        fabClasses += 'slideInUp faster';
+    }
+
     return (
         <div className="all-container">
             <AppBar className="header" style={{ height: 56 }} position="static">
@@ -124,16 +144,17 @@ export default function RoomsPage({ state, setState }) {
                 </Typography>
             </AppBar>
 
-            <Paper className="rooms-page page">
-                <CreateRoomForm />
-                <Divider />
-                <Typography style={{ marginTop: 10, marginLeft: 8 }} variant="h6">
-                    Salas disponíveis:
+            <div className={classes}>
+                <Paper className="rooms-page page">
+                    <CreateRoomForm />
+                    <Divider />
+                    <Typography style={{ marginTop: 10, marginLeft: 8 }} variant="h6">
+                        Salas disponíveis:
                 </Typography>
-                <RoomsList rooms={state.rooms} clicked={clicked} />
-                {/* <RoomListMemoized rooms={state.rooms} clicked={clicked} /> */}
-            </Paper>
-            <Fab onClick={goToStopScores} className="top-scores-fab" color="primary" variant="extended">
+                    <RoomsList rooms={state.rooms} clicked={clicked} />
+                </Paper>
+            </div>
+            <Fab onClick={goToStopScores} className={fabClasses} color="primary" variant="extended">
                 Top Scores
             </Fab>
         </div>

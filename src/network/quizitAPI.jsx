@@ -28,8 +28,8 @@ function attemptToConnect() {
 }
 
 function connect() {
-    //let ws = new WebSocket("wss://pt-quiz-it.herokuapp.com/websocket/chat");
-    let ws = new WebSocket("ws://localhost:8080/websocket/chat");
+    let ws = new WebSocket("wss://pt-quiz-it.herokuapp.com/websocket/chat");
+    // let ws = new WebSocket("ws://localhost:8080/websocket/chat");
     ws.onopen = (event) => webSocketConnectedHandler(event);
     ws.onclose = (event) => webSocketDisconnectedHandler(event);
     ws.onmessage = (event) => webSocketOnMessageHandler(event);
@@ -48,7 +48,7 @@ function webSocketConnectedHandler(event) {
 
 function webSocketDisconnectedHandler(event) {
     console.log("Disconnected");
-    console.log(event);
+
     if (isAttempting !== true) {
         connectInterval = setInterval(attemptToConnect, connectIntervalTime);
     }

@@ -1,6 +1,6 @@
 import React, { useEffect, Fragment } from 'react';
 import './room.css';
-import { USER_JOIN, USER_LEFT, START, LEAVE_ROOM, DELETE_ROOM } from '../../constant/messageTypes';
+import { USER_JOIN, USER_LEFT, START, LEAVE_ROOM, DELETE_ROOM, NEW_QUESTION } from '../../constant/messageTypes';
 import { startRequest, deleteRoomRequest, leaveRoomRequest } from '../../network/quizitAPI';
 import { QUESTION_PAGE, ROOMS_PAGE } from '../../constant/pages';
 import List from '@material-ui/core/List';
@@ -16,18 +16,25 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import { useHistory } from "react-router-dom";
+import { handleReplacePageAnimated } from "../../App";
 
 export default function RoomPage({ state, setState }) {
+    const history = useHistory();
+
     const { name, participants, creator } = state.room;
 
     const [open, setOpen] = React.useState(false);
+    const [exitAnimation, setExitAnimation] = React.useState(false);
 
     const handleClose = () => {
         setOpen(false);
         setState({
             ...state,
             currentPage: ROOMS_PAGE
-        })
+        });
+
+        handleReplacePageAnimated(setExitAnimation, history, '/rooms');
     };
 
     /**
@@ -74,6 +81,8 @@ export default function RoomPage({ state, setState }) {
         }
 
         setState(newState);
+
+        handleReplacePageAnimated(setExitAnimation, history, '/rooms');
     }
 
     function handleUserJoin(data) {
@@ -108,6 +117,7 @@ export default function RoomPage({ state, setState }) {
             currentPage: ROOMS_PAGE,
             room: {}
         });
+        handleReplacePageAnimated(setExitAnimation, history, '/rooms');
     }
 
     function handleStart(data) {
@@ -115,11 +125,24 @@ export default function RoomPage({ state, setState }) {
             ...state,
             currentPage: QUESTION_PAGE
         });
+
+        handleReplacePageAnimated(setExitAnimation, history, '/questions');
+    }
+
+    function handleNewQuestion(data) {
+        // Updates application state
+        state.questions.push(data.detail);
+        setState({
+            ...state,
+            questions: state.questions,
+            currentQuestion: data.detail
+        });
     }
 
     useEffect(() => {
         // Called when component is mouting
         // Listens for USER_LEFT message in order to update the list
+        document.addEventListener(NEW_QUESTION, handleNewQuestion);
         document.addEventListener(USER_LEFT, handleUserLeft);
 
         // Just like the other but in this case for joins
@@ -134,6 +157,7 @@ export default function RoomPage({ state, setState }) {
 
         return function clean() {
             // Clear event listeners otherwise there will be leaks
+            document.removeEventListener(NEW_QUESTION, handleNewQuestion);
             document.removeEventListener(START, handleStart);
             document.removeEventListener(USER_LEFT, handleUserLeft);
             document.removeEventListener(USER_JOIN, handleUserJoin);
@@ -142,6 +166,14 @@ export default function RoomPage({ state, setState }) {
         }
     }, [])
 
+    let classes = "animated ";
+
+    if (exitAnimation) {
+        classes += 'slideOutRight faster';
+    } else {
+        classes += 'slideInRight faster';
+    }
+
     return (
         <div className="all-container">
             <AppBar className="header" style={{ height: 56 }} position="static">
@@ -149,25 +181,27 @@ export default function RoomPage({ state, setState }) {
                     {name}
                 </Typography>
             </AppBar>
-            <Paper className="room-page page">
-                <div className="room-container">
-                    <Typography style={{ marginTop: 10, marginLeft: 8 }} variant="h6">
-                        Jogadores participantes:
+            <div className={classes}>
+                <Paper className="room-page page ">
+                    <div className="room-container">
+                        <Typography style={{ marginTop: 10, marginLeft: 8 }} variant="h6">
+                            Jogadores participantes:
                     </Typography>
-                    <List className="participants-list">
-                        {participants ? participants.map(participant => participant ? <ParticipantItem key={participant.id} participant={participant} /> : undefined) : undefined}
-                    </List>
-                    <div className="room-options-container">
-                        <div className="creater-options">
-                            {creator ? <Button className="creator-btn btn" onClick={startQuiz} variant="contained" color="primary">Iniciar</Button> : undefined}
-                            {creator ? <Button className="creator-btn btn" onClick={deleteRoom} variant="contained" color="primary">Apagar sala</Button> : undefined}
-                        </div>
-                        <div className="participant-options">
-                            {!creator ? <Button onClick={leaveRoom} variant="contained" color="primary">Sair</Button> : undefined}
+                        <List className="participants-list">
+                            {participants ? participants.map(participant => participant ? <ParticipantItem key={participant.id} participant={participant} /> : undefined) : undefined}
+                        </List>
+                        <div className="room-options-container">
+                            <div className="creater-options">
+                                {creator ? <Button className="creator-btn btn" onClick={startQuiz} variant="contained" color="primary">Iniciar</Button> : undefined}
+                                {creator ? <Button className="creator-btn btn" onClick={deleteRoom} variant="contained" color="primary">Apagar sala</Button> : undefined}
+                            </div>
+                            <div className="participant-options">
+                                {!creator ? <Button onClick={leaveRoom} variant="contained" color="primary">Sair</Button> : undefined}
+                            </div>
                         </div>
                     </div>
-                </div>
-            </Paper>
+                </Paper>
+            </div>
             <Dialog
                 open={open}
                 onClose={handleClose}

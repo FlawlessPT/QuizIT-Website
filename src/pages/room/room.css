@@ -3,6 +3,8 @@
     display: grid;
     grid-template-rows: 1fr;
     grid-template-columns: 1fr;
+    margin: auto;
+    margin-top: 10px;
 }
 
 .room-container {

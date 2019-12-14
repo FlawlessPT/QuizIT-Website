@@ -1,7 +1,14 @@
 .question-page {
-    display: grid;
+    /* display: grid;
     grid-template-rows: 1fr;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; */
+    display: flex;
+    flex-flow: column;
+}
+
+.question-page-container {
+    flex: 1;
+    height: 100vh;
 }
 
 .question-option-container {
@@ -46,10 +53,12 @@
 
 @media only screen and (min-width: 600px) {
     .question-page {
-        display: grid;
+        /* display: grid;
         grid-template-rows: 1fr auto 1fr;
         grid-template-columns: 1fr 650px 1fr;
-        height: calc(100vh - 56px) !important;
+        height: calc(100vh - 56px) !important; */
+        display: flex;
+        flex-flow: column;
     }
     
     .question-option-container {

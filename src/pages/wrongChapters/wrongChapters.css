@@ -1,7 +1,9 @@
 .wrongChapters-page {
-    display: grid;
+    /* display: grid;
     grid-template-rows: 56px auto;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: 1fr auto 1fr; */
+    display: flex;
+    flex-flow: column;
 }
 
 .wrongChapters-header  {
@@ -31,15 +33,18 @@
 
 @media only screen and (min-width: 600px) {
     .wrongChapters-page {
-        grid-template-columns: 1fr 600px 1fr;
-        grid-template-rows: auto auto 1fr;
+        /* grid-template-columns: 1fr 600px 1fr;
+        grid-template-rows: auto auto 1fr; */
     }
 
     .wrongChapters-container {
         padding: 15px;
+        margin: auto;
         margin-top: 50px;
-        grid-row: 2/2;
-        grid-column: 2/2;
+        width: 70%;
+        max-width: 70%;
+        /* grid-row: 2/2;
+        grid-column: 2/2; */
         display: grid;
         text-align: left;
         height: fit-content;
